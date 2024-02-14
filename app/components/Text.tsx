@@ -2,7 +2,7 @@ import i18n from "i18n-js"
 import React from "react"
 import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native"
 import { isRTL, translate, TxKeyPath } from "../i18n"
-import { colors, typography } from "../theme"
+import { colors, spacing, typography } from "../theme"
 
 type Sizes = keyof typeof $sizeStyles
 type Weights = keyof typeof typography.primary
@@ -93,6 +93,10 @@ const $baseStyle: StyleProp<TextStyle> = [
   { color: colors.text },
 ]
 
+const $tagStyle: StyleProp<TextStyle> = [
+  { color: colors.background, backgroundColor: colors.text, paddingHorizontal: spacing.xs },
+]
+
 const $presets = {
   default: $baseStyle,
 
@@ -105,6 +109,8 @@ const $presets = {
   formLabel: [$baseStyle, $fontWeightStyles.medium] as StyleProp<TextStyle>,
 
   formHelper: [$baseStyle, $sizeStyles.sm, $fontWeightStyles.normal] as StyleProp<TextStyle>,
+
+  tag: [$baseStyle, $fontWeightStyles.bold, $tagStyle] as StyleProp<TextStyle>,
 }
 
 const $rtlStyle: TextStyle = isRTL ? { writingDirection: "rtl" } : {}

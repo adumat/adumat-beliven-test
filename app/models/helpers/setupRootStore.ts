@@ -10,7 +10,7 @@
  * @refresh reset
  */
 import { applySnapshot, IDisposer, onSnapshot } from "mobx-state-tree"
-import { RootStore, RootStoreSnapshot } from "../RootStore"
+import { RootStore, RootStoreSnapshot, STORE_CURRENT_VERSION } from "../RootStore"
 import * as storage from "../../utils/storage"
 
 /**
@@ -28,7 +28,11 @@ export async function setupRootStore(rootStore: RootStore) {
   try {
     // load the last known state from AsyncStorage
     restoredState = ((await storage.load(ROOT_STATE_STORAGE_KEY)) ?? {}) as RootStoreSnapshot
-    applySnapshot(rootStore, restoredState)
+    if (restoredState.version === STORE_CURRENT_VERSION) {
+      applySnapshot(rootStore, restoredState)
+    } else {
+      console.log("old store format found, skip load")
+    }
   } catch (e) {
     // if there's any problems loading, then inform the dev what happened
     if (__DEV__) {

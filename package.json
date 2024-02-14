@@ -32,7 +32,9 @@
   },
   "dependencies": {
     "@expo-google-fonts/space-grotesk": "^0.2.2",
+    "@expo/react-native-action-sheet": "^4.0.1",
     "@react-native-async-storage/async-storage": "1.18.2",
+    "@react-native-segmented-control/segmented-control": "2.4.1",
     "@react-navigation/bottom-tabs": "^6.3.2",
     "@react-navigation/native": "^6.0.2",
     "@react-navigation/native-stack": "^6.0.2",
@@ -48,6 +50,7 @@
     "expo-splash-screen": "~0.20.4",
     "expo-status-bar": "~1.6.0",
     "i18n-js": "3.9.2",
+    "lodash": "^4.17.21",
     "mobx": "6.10.2",
     "mobx-react-lite": "4.0.5",
     "mobx-state-tree": "5.3.0",
@@ -59,7 +62,8 @@
     "react-native-reanimated": "~3.3.0",
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -73,6 +77,7 @@
     "@babel/runtime": "^7.20.0",
     "@types/i18n-js": "3.8.2",
     "@types/jest": "^29.2.1",
+    "@types/lodash": "^4.14.202",
     "@types/react": "~18.2.14",
     "@types/react-test-renderer": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.59.0",

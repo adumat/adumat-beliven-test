@@ -4,22 +4,17 @@
  * Generally speaking, it will contain an auth flow (registration, login, forgot password)
  * and a "main" flow which the user will use once logged in.
  */
-import {
-  DarkTheme,
-  DefaultTheme,
-  NavigationContainer,
-  NavigatorScreenParams,
-} from "@react-navigation/native"
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { useColorScheme } from "react-native"
 import * as Screens from "app/screens"
 import Config from "../config"
-import { useStores } from "../models"
-import { DemoNavigator, DemoTabParamList } from "./DemoNavigator"
+import { GAME_STATE, useStores } from "../models"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
+import { GameNavigator } from "./GameNavigator"
+import { ActionSheetProvider } from "@expo/react-native-action-sheet"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -35,10 +30,12 @@ import { colors } from "app/theme"
  *   https://reactnavigation.org/docs/typescript/#organizing-types
  */
 export type AppStackParamList = {
-  Welcome: undefined
-  Login: undefined
-  Demo: NavigatorScreenParams<DemoTabParamList>
+  DemoShowroom: undefined
   // 🔥 Your screens go here
+  StartNewGame: undefined
+  GameInProgress: undefined
+  GamePaused: undefined
+  EndGameSummary: undefined
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
 
@@ -58,27 +55,29 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 
 const AppStack = observer(function AppStack() {
   const {
-    authenticationStore: { isAuthenticated },
+    gameStore: { gameState },
   } = useStores()
 
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
-      initialRouteName={isAuthenticated ? "Welcome" : "Login"}
+      // initialRouteName={isAuthenticated ? "Welcome" : "Login"}
+      // initialRouteName="DemoShowroom"
     >
-      {isAuthenticated ? (
-        <>
-          <Stack.Screen name="Welcome" component={Screens.WelcomeScreen} />
-
-          <Stack.Screen name="Demo" component={DemoNavigator} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={Screens.LoginScreen} />
-        </>
-      )}
-
       {/** 🔥 Your screens go here */}
+      {gameState === GAME_STATE.WAITING_START && (
+        <Stack.Screen name="StartNewGame" component={Screens.StartNewGameScreen} />
+      )}
+      {gameState === GAME_STATE.GAME_IN_PROGRESS && (
+        <Stack.Screen name="GameInProgress" component={GameNavigator} />
+      )}
+      {gameState === GAME_STATE.GAME_PAUSED && (
+        <Stack.Screen name="GamePaused" component={Screens.GamePausedScreen} />
+      )}
+      {gameState === GAME_STATE.GAME_END && (
+        <Stack.Screen name="EndGameSummary" component={Screens.EndGameSummaryScreen} />
+      )}
+      <Stack.Screen name="DemoShowroom" component={Screens.DemoShowroomScreen} />
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>
   )
@@ -88,17 +87,13 @@ export interface NavigationProps
   extends Partial<React.ComponentProps<typeof NavigationContainer>> {}
 
 export const AppNavigator = observer(function AppNavigator(props: NavigationProps) {
-  const colorScheme = useColorScheme()
-
   useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      {...props}
-    >
-      <AppStack />
-    </NavigationContainer>
+    <ActionSheetProvider>
+      <NavigationContainer ref={navigationRef} theme={DefaultTheme} {...props}>
+        <AppStack />
+      </NavigationContainer>
+    </ActionSheetProvider>
   )
 })
