@@ -40,7 +40,8 @@ const BaseConfig: ConfigBaseProps = {
   // items length of leader board on welcome screen
   LEADER_BOARD_LENGTH: 5,
 
-  TICK_INTERVAL: 500,
+  // intervals of tick (ms)
+  TICK_INTERVAL: 1000,
   INITIAL_BALANCE: 5000,
 
   // amount of tick when a candidate spawn (can be dev or sales)
