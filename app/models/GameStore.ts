@@ -11,8 +11,11 @@ import {
   names,
 } from "unique-names-generator"
 import { random } from "lodash"
+import Toast from "react-native-root-toast"
+import { BOTTOM_TAB_BAR_HEIGHT } from "app/navigators"
 
 const DELTA_TICK = 5
+const DELTA_POSITION_TOAST = BOTTOM_TAB_BAR_HEIGHT * -1
 
 export enum GAME_STATE {
   "WAITING_START" = "WAITING_START",
@@ -142,7 +145,7 @@ export const GameStoreModel = types
         type,
         tickExpire:
           self.secondsElapsed +
-          random(Config.EMPLOYEE_EXPIRE_RATIO / 2, Config.EMPLOYEE_EXPIRE_RATIO, false),
+          random(Config.CANDIDATE_EXPIRE_RATIO / 2, Config.CANDIDATE_EXPIRE_RATIO, false),
       }
       self.candidates.push(candidate)
       return candidate
@@ -179,17 +182,26 @@ export const GameStoreModel = types
           tickEntry: self.secondsElapsed,
         })
       }
+      // prevent show toast on very beginning of the game
+      if (self.gameState === GAME_STATE.GAME_IN_PROGRESS) {
+        Toast.show("HIRED 🙆‍♂️", { position: Toast.positions.BOTTOM + DELTA_POSITION_TOAST })
+      }
     },
     fireDevEmployee(employee: DevEmployee) {
       // i need to do this to recover the mst object (because of toJS on views)
       const mstEmployee = self.devEmployees.find((e) => e.name === employee.name)
       if (mstEmployee) {
+        let projectUnassigned = false
         if (mstEmployee.workingProject) {
+          projectUnassigned = true
           mstEmployee.workingProject.status = ProjectStatus.PENDING
           mstEmployee.workingProject.tickEndProject = undefined
           mstEmployee.workingProject.tickExpire = self.secondsElapsed + Config.PROJECT_EXPIRE_RATIO
         }
         self.devEmployees.remove(mstEmployee)
+        Toast.show(`BOOM 💥${projectUnassigned ? " (project unassigned)" : ""}`, {
+          position: Toast.positions.BOTTOM + DELTA_POSITION_TOAST,
+        })
       }
     },
     fireSalesEmployee(employee: SalesEmployee) {
@@ -197,6 +209,7 @@ export const GameStoreModel = types
       const mstEmployee = self.salesEmployees.find((e) => e.name === employee.name)
       if (mstEmployee) {
         self.salesEmployees.remove(mstEmployee)
+        Toast.show("BOOM 💥", { position: Toast.positions.BOTTOM + DELTA_POSITION_TOAST })
       }
     },
     resetGame: () => {
@@ -237,7 +250,7 @@ export const GameStoreModel = types
       }
 
       // spawn a candidate
-      if (self.secondsElapsed % Config.EMPLOYEE_SPAWN_RATIO === 0) {
+      if (self.secondsElapsed % Config.CANDIDATE_SPAWN_RATIO === 0) {
         self._spawnCandidate()
       }
 
@@ -292,6 +305,7 @@ export const GameStoreModel = types
       self.projects = cast(self.projects.slice().sort(projectSort))
       // @ts-expect-error safeReference of dev employee is not resolved properly by cast
       self.devEmployees = cast(self.devEmployees.slice().sort(devSort))
+      Toast.show("Project assigned 🏋️", { position: Toast.positions.BOTTOM + DELTA_POSITION_TOAST })
     },
     togglePause() {
       if (self.gameState === GAME_STATE.GAME_IN_PROGRESS) {

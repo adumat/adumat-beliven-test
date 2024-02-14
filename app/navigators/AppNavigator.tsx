@@ -15,6 +15,7 @@ import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
 import { GameNavigator } from "./GameNavigator"
 import { ActionSheetProvider } from "@expo/react-native-action-sheet"
+import { RootSiblingParent } from "react-native-root-siblings"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -30,7 +31,6 @@ import { ActionSheetProvider } from "@expo/react-native-action-sheet"
  *   https://reactnavigation.org/docs/typescript/#organizing-types
  */
 export type AppStackParamList = {
-  DemoShowroom: undefined
   // 🔥 Your screens go here
   StartNewGame: undefined
   GameInProgress: undefined
@@ -59,11 +59,7 @@ const AppStack = observer(function AppStack() {
   } = useStores()
 
   return (
-    <Stack.Navigator
-      screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
-      // initialRouteName={isAuthenticated ? "Welcome" : "Login"}
-      // initialRouteName="DemoShowroom"
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false, navigationBarColor: colors.background }}>
       {/** 🔥 Your screens go here */}
       {gameState === GAME_STATE.WAITING_START && (
         <Stack.Screen name="StartNewGame" component={Screens.StartNewGameScreen} />
@@ -77,7 +73,6 @@ const AppStack = observer(function AppStack() {
       {gameState === GAME_STATE.GAME_END && (
         <Stack.Screen name="EndGameSummary" component={Screens.EndGameSummaryScreen} />
       )}
-      <Stack.Screen name="DemoShowroom" component={Screens.DemoShowroomScreen} />
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>
   )
@@ -90,10 +85,12 @@ export const AppNavigator = observer(function AppNavigator(props: NavigationProp
   useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
 
   return (
-    <ActionSheetProvider>
-      <NavigationContainer ref={navigationRef} theme={DefaultTheme} {...props}>
-        <AppStack />
-      </NavigationContainer>
-    </ActionSheetProvider>
+    <NavigationContainer ref={navigationRef} theme={DefaultTheme} {...props}>
+      <ActionSheetProvider>
+        <RootSiblingParent>
+          <AppStack />
+        </RootSiblingParent>
+      </ActionSheetProvider>
+    </NavigationContainer>
   )
 })

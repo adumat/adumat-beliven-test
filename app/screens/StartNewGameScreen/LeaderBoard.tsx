@@ -5,6 +5,7 @@ import { ListSeparator, Text } from "app/components"
 import { TextStyle, View, ViewStyle } from "react-native"
 import { format } from "date-fns"
 import { FlatList } from "react-native-gesture-handler"
+import { spacing } from "app/theme"
 interface LeaderBoardProps {}
 export const LeaderBoard: FC<LeaderBoardProps> = observer(function LeaderBoard(_props) {
   const {
@@ -14,7 +15,7 @@ export const LeaderBoard: FC<LeaderBoardProps> = observer(function LeaderBoard(_
     <FlatList
       style={$root}
       data={leaderBoardItems}
-      ListEmptyComponent={<Text text="No game played yet" />}
+      ListEmptyComponent={<Text style={$centerText} text="No game played yet" />}
       renderItem={({ item }) => (
         <View style={$leaderBoardRecord}>
           <Text style={$date} text={format(item.date, "PP")} />
@@ -37,12 +38,7 @@ const $leaderBoardRecord: ViewStyle = {
   justifyContent: "space-between",
   alignItems: "center",
 }
-const $date: TextStyle = {
-  // flexGrow: 1,
-}
-const $name: TextStyle = {
-  // flexGrow: 1,
-}
-const $duration: TextStyle = {
-  // flexGrow: 1,
-}
+const $date: TextStyle = {}
+const $name: TextStyle = {}
+const $duration: TextStyle = {}
+const $centerText: TextStyle = { alignSelf: "center", marginVertical: spacing.sm }

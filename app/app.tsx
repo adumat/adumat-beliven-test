@@ -35,24 +35,6 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
 // Web linking configuration
 const prefix = Linking.createURL("/")
-const config = {
-  screens: {
-    Login: {
-      path: "",
-    },
-    Welcome: "welcome",
-    Demo: {
-      screens: {
-        DemoShowroom: {
-          path: "showroom/:queryIndex?/:itemIndex?",
-        },
-        DemoDebug: "debug",
-        DemoPodcastList: "podcast",
-        DemoCommunity: "community",
-      },
-    },
-  },
-}
 
 interface AppProps {
   hideSplashScreen: () => Promise<boolean>
@@ -93,7 +75,6 @@ function App(props: AppProps) {
 
   const linking = {
     prefixes: [prefix],
-    config,
   }
 
   // otherwise, we're ready to render the app

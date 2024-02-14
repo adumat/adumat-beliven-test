@@ -3,6 +3,7 @@ import {
   createBottomTabNavigator,
   BottomTabScreenProps,
   BottomTabHeaderProps,
+  BottomTabNavigationProp,
 } from "@react-navigation/bottom-tabs"
 import { TextStyle, View, ViewStyle } from "react-native"
 import { colors, spacing, typography } from "app/theme"
@@ -13,6 +14,9 @@ import { observer } from "mobx-react-lite"
 import { useStores } from "app/models"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import { TouchableOpacity } from "react-native-gesture-handler"
+import { RouteProp } from "@react-navigation/native"
+
+export const BOTTOM_TAB_BAR_HEIGHT = 70
 
 export type GameNavigatorParamList = {
   Production: { mode: "view" | "assignProject" | "fire" }
@@ -26,6 +30,77 @@ export type GameTabsScreenProps<T extends keyof GameNavigatorParamList> = Bottom
   T
 >
 
+const HAMBURGER_MENU_ITEMS: {
+  text: string
+  destructive?: boolean
+  show?: (params: { route: RouteProp<GameNavigatorParamList> }) => boolean
+  onTap?: (params: {
+    navigation: BottomTabNavigationProp<GameNavigatorParamList>
+    route: RouteProp<GameNavigatorParamList>
+    togglePause: () => void
+  }) => void
+}[] = [
+  {
+    text: "Undo Assign",
+    show: ({ route }) => route.name === "Production" && route.params.mode === "assignProject",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "view",
+      })
+    },
+  },
+  {
+    text: "Undo Fire",
+    show: ({ route }) => route.name !== "Hr" && route.params.mode === "fire",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "view",
+      })
+    },
+  },
+  {
+    text: "Undo Hire",
+    show: ({ route }) => route.name === "Hr" && route.params.mode === "hire",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "view",
+      })
+    },
+  },
+  {
+    text: "Assign project",
+    show: ({ route }) => route.name === "Production" && route.params.mode !== "assignProject",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "assignProject",
+      })
+    },
+  },
+  {
+    text: "Fire",
+    show: ({ route }) => route.name !== "Hr" && route.params.mode !== "fire",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "fire",
+      })
+    },
+    destructive: true,
+  },
+  {
+    text: "Hire",
+    show: ({ route }) => route.name === "Hr" && route.params.mode !== "hire",
+    onTap: ({ navigation }) => {
+      navigation.setParams({
+        mode: "hire",
+      })
+    },
+  },
+  {
+    text: "Pause",
+    onTap: ({ togglePause }) => togglePause(),
+  },
+]
+
 export const GameHeader = observer(function GameHeader({
   route,
   navigation,
@@ -34,107 +109,37 @@ export const GameHeader = observer(function GameHeader({
     gameStore: { balance, secondsElapsed, togglePause },
   } = useStores()
   const { showActionSheetWithOptions } = useActionSheet()
-  const handleMenuPressOnProduction = useCallback(() => {
-    const options = ["Assign project", "Fire", "Pause", "Cancel"]
-    const destructiveButtonIndex = 1
-    const cancelButtonIndex = 3
-
+  const handleMenuPress = useCallback(() => {
+    const options = HAMBURGER_MENU_ITEMS.filter(
+      (item) =>
+        item.show?.({
+          route: route as RouteProp<GameNavigatorParamList>,
+        }) ?? true,
+    ).concat([
+      {
+        text: "Close menu",
+      },
+    ])
     showActionSheetWithOptions(
       {
-        options,
-        cancelButtonIndex,
-        destructiveButtonIndex,
+        options: options.map((i) => i.text),
+        cancelButtonIndex: options.length - 1,
+        destructiveButtonIndex: options.map((_, i) => i).filter((idx) => options[idx].destructive),
       },
       (selectedIndex?: number) => {
-        switch (selectedIndex) {
-          case 0:
-            navigation.setParams({
-              mode: "assignProject",
-            })
-            break
-
-          case destructiveButtonIndex:
-            navigation.setParams({
-              mode: "fire",
-            })
-            break
-          case 2:
-            togglePause()
-            break
-          case cancelButtonIndex:
-          // Canceled
+        if (selectedIndex !== undefined) {
+          options[selectedIndex]?.onTap?.({
+            navigation: navigation as BottomTabNavigationProp<GameNavigatorParamList>,
+            route: route as RouteProp<GameNavigatorParamList>,
+            togglePause,
+          })
         }
       },
     )
-  }, [navigation])
-  const handleMenuPressOnSales = useCallback(() => {
-    const options = ["Fire", "Pause", "Cancel"]
-    const destructiveButtonIndex = 0
-    const cancelButtonIndex = 2
-
-    showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex,
-        destructiveButtonIndex,
-      },
-      (selectedIndex?: number) => {
-        switch (selectedIndex) {
-          case destructiveButtonIndex:
-            navigation.setParams({
-              mode: "fire",
-            })
-            break
-          case 1:
-            togglePause()
-            break
-          case cancelButtonIndex:
-          // Canceled
-        }
-      },
-    )
-  }, [navigation])
-  const handleMenuPressOnHr = useCallback(() => {
-    const options = ["Hire", "Pause", "Cancel"]
-    const cancelButtonIndex = 2
-
-    showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex,
-      },
-      (selectedIndex?: number) => {
-        switch (selectedIndex) {
-          case 0:
-            navigation.setParams({
-              mode: "hire",
-            })
-            break
-          case 1:
-            togglePause()
-            break
-          case cancelButtonIndex:
-          // Canceled
-        }
-      },
-    )
-  }, [navigation])
-  const onPress = () => {
-    switch (route.name) {
-      case "Production":
-        handleMenuPressOnProduction()
-        break
-      case "Sales":
-        handleMenuPressOnSales()
-        break
-      case "Hr":
-        handleMenuPressOnHr()
-        break
-    }
-  }
+  }, [navigation, route, togglePause])
   return (
     <View style={$flexInRow}>
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity onPress={handleMenuPress}>
         <Icon icon="menu" />
       </TouchableOpacity>
       <View style={$gameSummary}>
@@ -152,7 +157,7 @@ export const GameNavigator = observer(function GameNavigator() {
         screenOptions={{
           header: (props) => <GameHeader {...props} />,
           tabBarHideOnKeyboard: true,
-          tabBarStyle: [$tabBar, { height: bottom + 70 }],
+          tabBarStyle: [$tabBar, { height: bottom + BOTTOM_TAB_BAR_HEIGHT }],
           tabBarActiveTintColor: colors.text,
           tabBarInactiveTintColor: colors.text,
           tabBarLabelStyle: $tabBarLabel,
